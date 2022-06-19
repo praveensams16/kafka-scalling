@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-scalling
+data: 
+  code.go: |
+    package main
+    
+    import (
+    	"fmt"
+      "time"
+    	"os/exec"
+    	"strconv"
+    	"strings"
+    )
+    
+    func run() int {
+    	cmd := exec.Command("kafka-consumer-groups.sh", "--bootstrap-server", "confluent-kafka.ekalya.com:9092", "--group", "logstash", "--describe")
+    	stdout, err := cmd.Output()
+    
+    	if err != nil {
+    		fmt.Println(err.Error())
+    		return 0
+    	}
+    
+    	s := string(stdout)
+    
+    	d := strings.Split(string(s), "\n")
+    
+    	count := 0
+    	for i := 0; i < len(d); i++ {
+    		lines := strings.Fields(d[i])
+    		if len(d[i]) > 0 && (lines[1] == "topic2" || lines[1] == "topic1") {
+    			lag, e := strconv.Atoi(lines[5])
+    			if e == nil {
+    				count = lag + count
+    			}
+    		}
+    
+    	}
+    	return count
+    
+    }
+    
+    func kubes(i int) interface{} {
+      i=3+i
+    	cmd := exec.Command("sh", "-x", "/mnt/sam.sh",strconv.Itoa(i))
+    	stdout, err := cmd.Output()
+    
+    	if err != nil {
+    		fmt.Println(err.Error())
+    		return 0
+    	}
+    
+    	s := string(stdout)
+    
+    	d := strings.Split(string(s), "\n")
+    	return d
+    }
+    
+    func main() {
+      for {
+    	count := run()/10000
+      runs:=run()
+    	fmt.Println(count)
+    	if count > 0 && count < 6 {
+    		fmt.Println("Value is greater then 10000 and count going to be",runs,count)
+    		kubes(count)
+       } else if count > 5 {
+        fmt.Println("value greater the 10000 and count hount to be",runs,"6")
+        kubes(6)
+    	} else {
+    		fmt.Println("Values is less then 10000", runs,count)
+        kubes(0)
+    	}
+      	time.Sleep(300*time.Second)
+      }
+    }
+  sam.sh: |
+    cd /mnt
+    echo $1
+    kubectl -n rabbitmq scale statefulset/logpipeline-new-logstash --replicas=$1  > /tmp/logs 2>&1
+
+

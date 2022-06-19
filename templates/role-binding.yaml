@@ -1,0 +1,11 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: modify-pods-to-scalling
+subjects:
+  - kind: ServiceAccount
+    name: sa-kafka
+roleRef:
+  kind: Role
+  name: modify-scalling
+  apiGroup: rbac.authorization.k8s.io
