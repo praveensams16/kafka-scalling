@@ -79,6 +79,6 @@ data:
   sam.sh: |
     cd /mnt
     echo $1
-    kubectl -n rabbitmq scale statefulset/logpipeline-new-logstash --replicas=$1  > /tmp/logs 2>&1
+    kubectl -n namespace scale statefulset/stateful-name --replicas=$1  > /tmp/logs 2>&1
 
 
